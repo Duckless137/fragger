@@ -1,0 +1,16 @@
+[package]
+name = "fragger"
+version = "1.0.0"
+edition = "2021"
+readme = "./README.md"
+repository = "https://github.com/Duckless137/fragger"
+
+build = "build.rs"
+
+[dependencies]
+fltk = "1.4.32"
+fltk-theme = "0.7.2"
+rfd = "0.14.1"
+
+[target.'cfg(windows)'.build-dependencies]
+winres  = "0.1.12"
