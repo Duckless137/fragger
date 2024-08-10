@@ -30,7 +30,7 @@ Frankly, my code is so messy and bad ANY contribution would be much appreciated.
 Here are a few things planned for this project, for which help would be appreciated:
 * Stopping Windows from immediatley identifying it as malware
 * Optimization
-* Dynamic file id bytes
+* Dynamic file ID bytes
 * Linux support
 * MacOS support
 
