@@ -22,7 +22,7 @@
 
 1. After receiving the fragment (.frag) files from your friend, place them in a new directory.
 2. Open the program and press the "Reassemble" button. Select the directory with the .frag files.
-3. The reassbled file will be placed in the parent path of the fragment directory.\
+3. The reassbled file will be placed in the parent path of the fragment directory.
 
 # Contribution
 
