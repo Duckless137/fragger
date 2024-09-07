@@ -253,9 +253,9 @@ pub fn combine_files(path: PathBuf) {
         // tampered with, but it stops the program from reallocating 
         // the buffer for each file- which would be terrible for perfomance
         // because of how slow the heap is.
-        let mut buffer_size: u64;
+        let mut buffer_size: usize;
         if let Ok(file_metadata) = std::fs::metadata(&file_path) {
-            buffer_size = file_metadata.size().clamp(0, MAX_BUFFER_SIZE);
+            buffer_size = file_metadata.size().clamp(0, MAX_BUFFER_SIZE) as usize;
         } else {
             ExpectedErrors::CouldNotReadFile(path.display().to_string()).print();
             return;
@@ -268,7 +268,7 @@ pub fn combine_files(path: PathBuf) {
         for (file_path, _order) in file_paths.into_iter().skip(1) {
             if let Ok(mut fragment) = fs::File::open(&file_path) {
                 loop {
-                    let bytes_read = fragment.read_to_end(&mut buffer);
+                    let bytes_read = fragment.read(&mut buffer);
                 
                     // Reads the fragment file into the buffer
                     if bytes_read.is_err() {
@@ -279,7 +279,7 @@ pub fn combine_files(path: PathBuf) {
                     }
 
                     // Disregard ID bytes
-                    let content = &buffer[4..buffer.len()];
+                    let content = &buffer[4..bytes_read.unwrap()];
 
                     // Writes buffer to target file
                     if main_file.write_all(content).is_err() {
