@@ -51,8 +51,11 @@ pub fn start() {
 
     // Preset data
     let sizes = [
+        // SMS Messaging
         (3584, "3.5 Mb"),
-        (25 * KILOBYTE, "25 Mb"),
+        // Discord File Limit
+        (10 * KILOBYTE, "10 Mb"),
+        // iMessage limit
         (100 * KILOBYTE, "100 Mb"),
     ];
     let default_color = Color::Dark1;

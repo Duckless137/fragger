@@ -21,7 +21,7 @@ fn make_small() {
 #[test] 
 fn make_large() {
     let large_buf: [u8; 1024] = [0; 1024];
-    std::fs::File::create("./tests/files/large.txt").unwrap();
+    std::fs::File::create("./tests/large.txt").unwrap();
     let mut file = std::fs::OpenOptions::new().append(true).open("./tests/files/large.txt").unwrap();
     for _ in 0..(1024 * 1024) {
         file.write_all(&large_buf).unwrap();

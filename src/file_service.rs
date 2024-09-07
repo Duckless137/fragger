@@ -2,14 +2,17 @@ use crate::PrintErr;
 use std::{
     fs,
     io::{Read, Write},
-    os::windows::fs::MetadataExt,
+    os::{unix::fs::MetadataExt, windows::fs::MetadataExt},
     path::PathBuf,
 };
 
 use super::ExpectedErrors;
 
-// 100 MB
-pub const MAX_CHUNK_SIZE: u32 = 100 * 1024 * 1024;
+// 128 MB
+pub const MAX_BUFFER_SIZE: u32 = 128 * 1024 * 1024;
+
+// 4 GB
+pub const MAX_CHUNK_SIZE: u32 = 4 * 1024 * 1024 * 1024 * 1024;
 
 // 1 KB
 pub const MIN_CHUNK_SIZE: u32 = 1024;
@@ -18,7 +21,7 @@ pub const MIN_CHUNK_SIZE: u32 = 1024;
 pub const MAX_FILE_SIZE: u64 = 4 * 1024 * 1024 * 1024 * 1024;
 
 pub fn split_file(path: PathBuf, chunk_size: u32) {
-    // Makes sure chunk sizes are within limit (They shouldn't bee due to app.rs's restrictions)
+    // Makes sure chunk sizes are within limit (They shouldn't be due to app.rs's restrictions)
     if chunk_size > MAX_CHUNK_SIZE {
         ExpectedErrors::FileTooBig(chunk_size, MAX_CHUNK_SIZE).print();
         return;
@@ -29,7 +32,7 @@ pub fn split_file(path: PathBuf, chunk_size: u32) {
         return;
     }
 
-    //Makes sure file is
+    // Makes sure file is
     //  a. Within file size limits
     //  b. Larger than chunk size
     if let Ok(file_metadata) = std::fs::metadata(&path) {
@@ -244,25 +247,45 @@ pub fn combine_files(path: PathBuf) {
 
     // Open target file
     if let Ok(mut main_file) = fs::OpenOptions::new().append(true).open(&file_name) {
+        
+        // Allocates the buffer based on the size of the first file.
+        // This is somewhat risky because it assumes no files have been
+        // tampered with, but it stops the program from reallocating 
+        // the buffer for each file- which would be terrible for perfomance
+        // because of how slow the heap is.
+        let mut buffer_size: u64;
+        if let Ok(file_metadata) = std::fs::metadata(&file_path) {
+            buffer_size = file_metadata.size().clamp(0, MAX_BUFFER_SIZE);
+        } else {
+            ExpectedErrors::CouldNotReadFile(path.display().to_string()).print();
+            return;
+        };
+
+        // Idealy, I would like to get rid of this buffer, since it uses recources
+        let mut buffer = Vec::with_capacity(buffer_size).into_boxed_slice();
+        
         // Read fragment files (skip name file)
         for (file_path, _order) in file_paths.into_iter().skip(1) {
             if let Ok(mut fragment) = fs::File::open(&file_path) {
-                // Idealy, I would like to get rid of this buffer, since it uses recources
-                let mut buffer = Vec::new();
+                loop {
+                    let bytes_read = fragment.read_to_end(&mut buffer);
+                
+                    // Reads the fragment file into the buffer
+                    if bytes_read.is_err() {
+                        ExpectedErrors::CouldNotReadFile(file_path.display().to_string()).print();
+                        return;
+                    } else if bytes_read.unwrap() < 1 {
+                        break;
+                    }
 
-                // Reads the fragment file into the buffer
-                if fragment.read_to_end(&mut buffer).is_err() {
-                    ExpectedErrors::CouldNotReadFile(file_path.display().to_string()).print();
-                    return;
-                }
+                    // Disregard ID bytes
+                    let content = &buffer[4..buffer.len()];
 
-                // Disregard ID bytes
-                let content = &buffer[4..buffer.len()];
-
-                // Writes buffer to target file
-                if main_file.write_all(content).is_err() {
-                    ExpectedErrors::CouldNotWriteFile(file_path.display().to_string()).print();
-                    return;
+                    // Writes buffer to target file
+                    if main_file.write_all(content).is_err() {
+                        ExpectedErrors::CouldNotWriteFile(file_path.display().to_string()).print();
+                        return;
+                    }   
                 }
             } else {
                 ExpectedErrors::UnreadableFile.print();

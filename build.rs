@@ -8,3 +8,7 @@ fn main() {
 
     res.compile().unwrap();
 }
+
+fn main() {
+
+}
