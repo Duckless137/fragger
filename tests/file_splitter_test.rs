@@ -1,6 +1,6 @@
 use fragger::*;
 
-const CHUNK_SIZE: u32 = 100 * 1024 * 1024;
+const CHUNK_SIZE: u64 = 100 * 1024 * 1024;
 
 #[test]
 fn weed_errors() {

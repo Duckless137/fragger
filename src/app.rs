@@ -16,12 +16,12 @@ use fltk_theme::widget_themes;
 use rfd::FileDialog;
 
 // A kilobyte is 1024 bytes (technically that's a kibibyte, but no-one really cares)
-const KILOBYTE: u32 = 1024;
+const KILOBYTE: u64 = 1024;
 
 // Because I am mutating static variables, any code reading or writing them will need to be marked as unsafe.
 // The code is safe though, as it's single threaded.
 // Keep this in mind whenever you see the unsafe block.
-static mut CHUNK_SIZE: u32 = 25 * KILOBYTE;
+static mut CHUNK_SIZE: u64 = 25 * KILOBYTE;
 
 pub fn show_file_select() -> Option<std::path::PathBuf> {
     let file = FileDialog::new()
@@ -125,8 +125,8 @@ pub fn start() {
         // Autocorrect to kb if mb are entered
         if val.trim().ends_with("mb") {
             val = val.trim_end_matches("mb");
-            if let Ok(new_size) = val.trim().parse::<f32>() {
-                let new_size: u32 = (new_size * 1024.0).round() as u32;
+            if let Ok(new_size) = val.trim().parse::<f64>() {
+                let new_size: u64 = (new_size * 1024.0).round() as u64;
                 unsafe {
                     CHUNK_SIZE =
                         new_size.clamp(MIN_CHUNK_SIZE / KILOBYTE, MAX_CHUNK_SIZE / KILOBYTE);
@@ -144,7 +144,7 @@ pub fn start() {
         }
 
         // Parse input as number
-        if let Ok(new_size) = val.trim().parse::<u32>() {
+        if let Ok(new_size) = val.trim().parse::<u64>() {
             unsafe {
                 CHUNK_SIZE = new_size.clamp(MIN_CHUNK_SIZE / KILOBYTE, MAX_CHUNK_SIZE / KILOBYTE);
                 input.set_value(&format!("{} KB", CHUNK_SIZE));

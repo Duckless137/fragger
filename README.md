@@ -28,9 +28,12 @@
 
 Frankly, my code is so messy and bad ANY contribution would be much appreciated. Pull requests are welcome, but please open an issue for large changes, and discuss with me first.
 Here are a few things planned for this project, for which help would be appreciated:
-* Stopping Windows from immediatley identifying it as malware
-* Optimization
+
+* Stopping Windows from immediately identifying it as malware
+* CLI Integration
+* Optimization (I want this to be faster than WINRAR)
 * Dynamic file ID bytes
+* Installation Wizard
+* Improved UI
 * Linux support
 * MacOS support
-
